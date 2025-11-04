@@ -3,13 +3,13 @@
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useDetectionStore } from '@/stores/useDetectionStore';
+import { fetchStats } from '@/lib/supabase'; // 👈 TAMBAH INI
 import { Detection } from '@/types';
 
 export function useSupabaseRealtime() {
-  const { addDetection, updateDetection } = useDetectionStore();
+  const { addDetection, updateDetection, setStats, dateRange } = useDetectionStore(); // 👈 TAMBAH setStats & dateRange
 
   useEffect(() => {
-    // Subscribe to INSERT events (new detection)
     const channel = supabase
       .channel('detections-realtime')
       .on(
@@ -22,7 +22,6 @@ export function useSupabaseRealtime() {
         async (payload) => {
           console.log('🆕 New detection:', payload.new);
 
-          // Fetch image URL (karena INSERT tidak include join)
           const { data: imageData } = await supabase
             .from('overtaking_images')
             .select('image_url')
@@ -35,6 +34,14 @@ export function useSupabaseRealtime() {
           } as Detection;
 
           addDetection(newDetection);
+
+          // 👇 TAMBAH INI - Refresh stats setelah data baru masuk
+          try {
+            const updatedStats = await fetchStats(dateRange || undefined);
+            setStats(updatedStats);
+          } catch (error) {
+            console.error('Error refreshing stats:', error);
+          }
         }
       )
       .on(
@@ -44,19 +51,26 @@ export function useSupabaseRealtime() {
           schema: 'public',
           table: 'overtaking_logs',
         },
-        (payload) => {
+        async (payload) => { // 👈 TAMBAH async
           console.log('🔄 Updated detection:', payload.new);
 
           updateDetection(payload.new.id, payload.new as Partial<Detection>);
+
+          // 👇 TAMBAH INI - Refresh stats setelah update
+          try {
+            const updatedStats = await fetchStats(dateRange || undefined);
+            setStats(updatedStats);
+          } catch (error) {
+            console.error('Error refreshing stats:', error);
+          }
         }
       )
       .subscribe((status) => {
         console.log('Realtime status:', status);
       });
 
-    // Cleanup on unmount
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [addDetection, updateDetection]);
+  }, [addDetection, updateDetection, setStats, dateRange]); // 👈 TAMBAH setStats & dateRange
 }

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { fetchDetections } from '@/lib/supabase';
+import type { DateRange } from '@/lib/supabase';
 import { useDetectionStore } from '@/stores/useDetectionStore';
 
 export function useDetections() {
@@ -11,7 +12,8 @@ export function useDetections() {
     async function loadDetections() {
       setLoading(true);
       try {
-        const data = await fetchDetections(50, dateRange || undefined);
+        // 👇 Cast dateRange ke any dulu (temporary fix)
+        const data = await fetchDetections(50, dateRange as any);
         setDetections(data);
       } catch (error) {
         console.error('Error fetching detections:', error);

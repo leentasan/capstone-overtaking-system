@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDetectionStore } from '@/stores/useDetectionStore';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -12,10 +11,19 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export function TrafficChart() {
   const detections = useDetectionStore((state) => state.detections);
 
-  // Count by vehicle type
-  const carCount = detections.filter((d) => d.vehicle_type === 'car').length;
-  const mediumCount = detections.filter((d) => d.vehicle_type === 'medium').length;
-  const largeCount = detections.filter((d) => d.vehicle_type === 'large').length;
+  // DEBUG
+  console.log('=== TRAFFIC CHART DEBUG ===');
+  console.log('Total detections:', detections.length);
+  console.log('Sample detection:', detections[0]);
+  console.log('All vehicle types:', detections.map(d => d.vehicle_type));
+
+  const carCount = detections.filter((d) => d.vehicle_type === 'mobil').length;
+  const mediumCount = detections.filter((d) => d.vehicle_type === 'truk/bus sedang').length;
+  const largeCount = detections.filter((d) => d.vehicle_type === 'truk/bus besar').length;
+
+  // DEBUG
+  console.log('Chart counts:', { carCount, mediumCount, largeCount });
+  console.log('===========================');
 
   const data = {
     labels: ['Mobil', 'Truck Sedang', 'Truck Besar'],
@@ -23,9 +31,9 @@ export function TrafficChart() {
       {
         data: [carCount, mediumCount, largeCount],
         backgroundColor: [
-          chartColors.primary,   // Purple
-          chartColors.secondary, // Pink
-          chartColors.tertiary,  // Blue
+          chartColors.primary,
+          chartColors.secondary,
+          chartColors.tertiary,
         ],
         borderWidth: 2,
         borderColor: '#fff',
@@ -46,7 +54,7 @@ export function TrafficChart() {
             const label = context.label || '';
             const value = context.parsed || 0;
             const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
             return `${label}: ${value} (${percentage}%)`;
           },
         },
