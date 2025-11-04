@@ -1,16 +1,33 @@
+// components/analytics/ExportSection.tsx
 import React, { useState } from 'react';
+import { exportToCSV, exportToPDF, type AnalyticsData } from '@/utils/exportHelpers';
 
 interface ExportSectionProps {
-  onExport: (format: 'csv' | 'pdf') => void;
+  analyticsData: AnalyticsData;
 }
 
-export default function ExportSection({ onExport }: ExportSectionProps) {
+export default function ExportSection({ analyticsData }: ExportSectionProps) {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async (format: 'csv' | 'pdf') => {
+    // Check if there's actual data to export
+    if (!analyticsData || analyticsData.metrics.totalDetections === 0) {
+      alert('No data available to export');
+      return;
+    }
+
     try {
       setIsExporting(true);
-      await onExport(format);
+      
+      if (format === 'csv') {
+        exportToCSV(analyticsData);
+      } else {
+        exportToPDF(analyticsData);
+      }
+      
+      // Small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
     } catch (error) {
       console.error('Export failed:', error);
       alert(`Failed to export ${format.toUpperCase()}. Please try again.`);
@@ -19,12 +36,14 @@ export default function ExportSection({ onExport }: ExportSectionProps) {
     }
   };
 
+  const hasData = analyticsData && analyticsData.metrics.totalDetections > 0;
+
   return (
     <div className="flex items-center gap-3">
       <button
         onClick={() => handleExport('pdf')}
-        disabled={isExporting}
-        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isExporting || !hasData}
+        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
       >
         {isExporting ? (
           <>
@@ -46,8 +65,8 @@ export default function ExportSection({ onExport }: ExportSectionProps) {
 
       <button
         onClick={() => handleExport('csv')}
-        disabled={isExporting}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isExporting || !hasData}
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

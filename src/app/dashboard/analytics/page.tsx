@@ -53,18 +53,30 @@ export default function AnalyticsPage() {
       try {
         setLoading(true);
         
-        // ✅ Ganti dummy data dengan API call
+        console.log('🔄 Fetching analytics data...');
+        
         const response = await fetch('/api/analytics');
+        
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response OK:', response.ok);
         
         if (!response.ok) {
           throw new Error('Failed to fetch analytics');
         }
         
         const data = await response.json();
+        
+        console.log('✅ Data received:', data);
+        console.log('📊 Total Detections:', data.metrics?.totalDetections);
+        console.log('📊 Trend Data length:', data.trendData?.length);
+        console.log('📊 Speed Data length:', data.speedData?.length);
+        
         setAnalyticsData(data);
         
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
+        console.error('❌ Error fetching analytics data:', error);
+        console.log('⚠️ Using fallback empty data');
+        
         // Fallback ke data kosong jika error
         setAnalyticsData({
           trendData: [],
@@ -80,15 +92,21 @@ export default function AnalyticsPage() {
         });
       } finally {
         setLoading(false);
+        console.log('✅ Loading completed');
       }
     };
 
     fetchData();
   }, []);
 
+  // Debug: Log setiap kali analyticsData berubah
+  useEffect(() => {
+    console.log('🔍 Current analyticsData state:', analyticsData);
+    console.log('🔍 Has data?', analyticsData.metrics.totalDetections > 0);
+  }, [analyticsData]);
+
   const handleExport = (format: 'csv' | 'pdf') => {
     console.log(`Exporting data as ${format}...`);
-    // TODO: Implement export logic
     alert(`Export sebagai ${format.toUpperCase()} akan segera tersedia!`);
   };
 
@@ -114,7 +132,18 @@ export default function AnalyticsPage() {
               Analisis data deteksi kendaraan dan performa sistem
             </p>
           </div>
-          <ExportSection onExport={handleExport} />
+          <ExportSection analyticsData={analyticsData} />
+        </div>
+
+        {/* Debug Info - HAPUS NANTI */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm font-semibold text-yellow-800 mb-2">🐛 Debug Info:</p>
+          <div className="text-xs text-yellow-700 space-y-1">
+            <p>Total Detections: {analyticsData.metrics.totalDetections}</p>
+            <p>Trend Data: {analyticsData.trendData.length} items</p>
+            <p>Speed Data: {analyticsData.speedData.length} items</p>
+            <p>Button should be: {analyticsData.metrics.totalDetections > 0 ? '✅ ENABLED' : '❌ DISABLED'}</p>
+          </div>
         </div>
 
         {/* Performance Metrics */}
