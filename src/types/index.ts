@@ -38,3 +38,5 @@ export interface DateRange {
 
 export type FeasibilityStatus = 'safe' | 'unsafe' | 'warning_no_vehicle_detection' | null;
 export type VehicleType = 'mobil' | 'truk/bus sedang' | 'truk/bus besar';
+
+export {};

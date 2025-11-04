@@ -11,19 +11,19 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export function TrafficChart() {
   const detections = useDetectionStore((state) => state.detections);
 
-  // // DEBUG
-  // console.log('=== TRAFFIC CHART DEBUG ===');
-  // console.log('Total detections:', detections.length);
-  // console.log('Sample detection:', detections[0]);
-  // console.log('All vehicle types:', detections.map(d => d.vehicle_type));
+  // DEBUG
+  console.log('=== TRAFFIC CHART DEBUG ===');
+  console.log('Total detections:', detections.length);
+  console.log('Sample detection:', detections[0]);
+  console.log('All vehicle types:', detections.map(d => d.vehicle_type));
 
-  // const carCount = detections.filter((d) => d.vehicle_type === 'mobil').length;
-  // const mediumCount = detections.filter((d) => d.vehicle_type === 'truk/bus sedang').length;
-  // const largeCount = detections.filter((d) => d.vehicle_type === 'truk/bus besar').length;
+  const carCount = detections.filter((d) => d.vehicle_type === 'mobil').length;
+  const mediumCount = detections.filter((d) => d.vehicle_type === 'truk/bus sedang').length;
+  const largeCount = detections.filter((d) => d.vehicle_type === 'truk/bus besar').length;
 
-  // // DEBUG
-  // console.log('Chart counts:', { carCount, mediumCount, largeCount });
-  // console.log('===========================');
+  // DEBUG
+  console.log('Chart counts:', { carCount, mediumCount, largeCount });
+  console.log('===========================');
 
   const data = {
     labels: ['Mobil', 'Truck Sedang', 'Truck Besar'],
