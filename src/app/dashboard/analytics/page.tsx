@@ -2,70 +2,83 @@
 
 import React, { useState, useEffect } from 'react';
 import TrendChart from '@/components/analytics/TrendChart';
-import HourlyTrafficChart from '@/components/analytics/HourlyTrafficChart';
 import SpeedDistribution from '@/components/analytics/SpeedDistribution';
 import PerformanceMetrics from '@/components/analytics/PerformanceMetrics';
 import ExportSection from '@/components/analytics/ExportSection';
 
+// Types
+interface HourlyData {
+  hour: number;
+  total: number;
+  safe: number;
+  unsafe: number;
+}
+
+interface SpeedRange {
+  range: string;
+  count: number;
+  percentage: number;
+}
+
+interface AnalyticsData {
+  trendData: HourlyData[];
+  speedData: SpeedRange[];
+  metrics: {
+    totalDetections: number;
+    systemAccuracy: number;
+    avgClassificationTime: number;
+    avgFeasibilityTime: number;
+    avgSpeed: number;
+    complianceRate: number;
+  };
+}
+
 export default function AnalyticsPage() {
-  // State untuk data
   const [loading, setLoading] = useState(true);
-  const [analyticsData, setAnalyticsData] = useState({
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     trendData: [],
-    hourlyData: [],
     speedData: [],
     metrics: {
       totalDetections: 0,
-      averageSpeed: 0,
-      violations: 0,
-      peakHour: '-'
+      systemAccuracy: 0,
+      avgClassificationTime: 0,
+      avgFeasibilityTime: 0,
+      avgSpeed: 0,
+      complianceRate: 0
     }
   });
 
-  // Fetch data (atau gunakan dummy data)
   useEffect(() => {
-    // TODO: Replace dengan fetch dari API/Supabase
     const fetchData = async () => {
       try {
-        // Dummy data untuk testing
-        const dummyData = {
-          trendData: [
-            { date: '2024-01-01', count: 45 },
-            { date: '2024-01-02', count: 52 },
-            { date: '2024-01-03', count: 38 },
-            { date: '2024-01-04', count: 65 },
-            { date: '2024-01-05', count: 58 },
-            { date: '2024-01-06', count: 72 },
-            { date: '2024-01-07', count: 61 }
-          ],
-          hourlyData: [
-            { hour: '00:00', count: 5 },
-            { hour: '06:00', count: 15 },
-            { hour: '09:00', count: 35 },
-            { hour: '12:00', count: 42 },
-            { hour: '15:00', count: 38 },
-            { hour: '18:00', count: 45 },
-            { hour: '21:00', count: 20 }
-          ],
-          speedData: [
-            { range: '0-20 km/h', count: 12 },
-            { range: '20-40 km/h', count: 45 },
-            { range: '40-60 km/h', count: 78 },
-            { range: '60-80 km/h', count: 34 },
-            { range: '>80 km/h', count: 8 }
-          ],
-          metrics: {
-            totalDetections: 177,
-            averageSpeed: 48.5,
-            violations: 42,
-            peakHour: '18:00'
-          }
-        };
-
-        setAnalyticsData(dummyData);
-        setLoading(false);
+        setLoading(true);
+        
+        // ✅ Ganti dummy data dengan API call
+        const response = await fetch('/api/analytics');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch analytics');
+        }
+        
+        const data = await response.json();
+        setAnalyticsData(data);
+        
       } catch (error) {
         console.error('Error fetching analytics data:', error);
+        // Fallback ke data kosong jika error
+        setAnalyticsData({
+          trendData: [],
+          speedData: [],
+          metrics: {
+            totalDetections: 0,
+            systemAccuracy: 0,
+            avgClassificationTime: 0,
+            avgFeasibilityTime: 0,
+            avgSpeed: 0,
+            complianceRate: 0
+          }
+        });
+      } finally {
         setLoading(false);
       }
     };
@@ -73,7 +86,6 @@ export default function AnalyticsPage() {
     fetchData();
   }, []);
 
-  // Handler untuk export
   const handleExport = (format: 'csv' | 'pdf') => {
     console.log(`Exporting data as ${format}...`);
     // TODO: Implement export logic
@@ -110,16 +122,15 @@ export default function AnalyticsPage() {
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Trend Chart - Full width on mobile, half on desktop */}
+          {/* Trend Chart - Full width */}
           <div className="lg:col-span-2">
             <TrendChart data={analyticsData.trendData} />
           </div>
 
-          {/* Hourly Traffic */}
-          <HourlyTrafficChart data={analyticsData.hourlyData} />
-
-          {/* Speed Distribution */}
-          <SpeedDistribution data={analyticsData.speedData} />
+          {/* Speed Distribution - Full width */}
+          <div className="lg:col-span-2">
+            <SpeedDistribution data={analyticsData.speedData} />
+          </div>
         </div>
 
         {/* Additional Info */}

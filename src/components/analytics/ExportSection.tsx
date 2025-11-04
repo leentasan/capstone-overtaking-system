@@ -7,13 +7,13 @@ interface ExportSectionProps {
 export default function ExportSection({ onExport }: ExportSectionProps) {
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'csv' | 'pdf') => {
     try {
       setIsExporting(true);
-      await onExport();
+      await onExport(format);
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export PDF. Please try again.');
+      alert(`Failed to export ${format.toUpperCase()}. Please try again.`);
     } finally {
       setIsExporting(false);
     }
@@ -22,7 +22,7 @@ export default function ExportSection({ onExport }: ExportSectionProps) {
   return (
     <div className="flex items-center gap-3">
       <button
-        onClick={handleExport}
+        onClick={() => handleExport('pdf')}
         disabled={isExporting}
         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
@@ -39,14 +39,21 @@ export default function ExportSection({ onExport }: ExportSectionProps) {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span>Download PDF Report</span>
+            <span>Download PDF</span>
           </>
         )}
       </button>
-      
-      <div className="text-sm text-gray-600">
-        <p>Laporan lengkap dengan semua chart & data</p>
-      </div>
+
+      <button
+        onClick={() => handleExport('csv')}
+        disabled={isExporting}
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Download CSV</span>
+      </button>
     </div>
   );
 }

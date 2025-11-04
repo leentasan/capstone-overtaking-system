@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  transpilePackages: ['recharts'],
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
