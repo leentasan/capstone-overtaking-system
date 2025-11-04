@@ -1,15 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
-import { Detection, Stats } from '@/types';
+import { Detection, Stats, DateRange } from '@/types'; // 👈 TAMBAH DateRange
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-console.log('Supabase URL:', supabaseUrl); // Debug
-console.log('Supabase Key exists:', !!supabaseAnonKey); // Debug
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Key exists:', !!supabaseAnonKey);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Test connection
 export async function testConnection() {
   try {
     const { data, error } = await supabase.from('overtaking_logs').select('count');
@@ -21,17 +20,29 @@ export async function testConnection() {
   }
 }
 
-export async function fetchDetections(limit: number = 50): Promise<Detection[]> {
+// 👇 TAMBAH parameter dateRange (optional)
+export async function fetchDetections(limit: number = 50, dateRange?: DateRange): Promise<Detection[]> {
   try {
     console.log('🔍 Attempting to fetch from overtaking_logs...');
     
-    const { data, error } = await supabase
+    let query = supabase
       .from('overtaking_logs')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // Log error detail lengkap
+    // 👇 TAMBAH filter dateRange jika ada
+    if (dateRange?.from) {
+      query = query.gte('created_at', dateRange.from.toISOString());
+    }
+    if (dateRange?.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999); // Include seluruh hari
+      query = query.lte('created_at', toDate.toISOString());
+    }
+
+    const { data, error } = await query;
+
     if (error) {
       console.error('❌ Supabase Error Details:', {
         message: error.message,
@@ -50,13 +61,24 @@ export async function fetchDetections(limit: number = 50): Promise<Detection[]> 
   }
 }
 
-export async function fetchStats(): Promise<Stats> {
+// 👇 TAMBAH parameter dateRange (optional)
+export async function fetchStats(dateRange?: DateRange): Promise<Stats> {
   try {
     console.log('🔍 Fetching stats...');
     
-    const { data, error } = await supabase
-      .from('overtaking_logs')
-      .select('*');
+    let query = supabase.from('overtaking_logs').select('*');
+
+    // 👇 TAMBAH filter dateRange jika ada
+    if (dateRange?.from) {
+      query = query.gte('created_at', dateRange.from.toISOString());
+    }
+    if (dateRange?.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999);
+      query = query.lte('created_at', toDate.toISOString());
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('❌ Stats Error:', {
@@ -66,7 +88,6 @@ export async function fetchStats(): Promise<Stats> {
         code: error.code
       });
       
-      // Return default stats on error
       return {
         totalDetections: 0,
         todayCount: 0,
@@ -121,3 +142,6 @@ export async function fetchStats(): Promise<Stats> {
     };
   }
 }
+
+// Re-export types
+export type { DateRange } from '@/types';
