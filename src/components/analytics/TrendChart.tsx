@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useDetectionStore } from '@/stores/useDetectionStore';
 
 interface HourlyData {
   hour: number;
@@ -9,36 +10,86 @@ interface HourlyData {
   unsafe: number;
 }
 
-interface TrendChartProps {
-  data: HourlyData[];
-}
+const TrendChart: React.FC = () => {
+  const detections = useDetectionStore((state) => state.detections);
 
-const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
-  // Guard: Kalau data kosong
-  if (!data || data.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Trend Deteksi Hari Ini (Per Jam)
-        </h3>
-        <div className="h-[300px] flex items-center justify-center text-gray-500">
-          <p>Belum ada data deteksi hari ini</p>
-        </div>
-      </div>
-    );
-  }
+  // Calculate hourly trend data from detections
+  const calculateHourlyTrend = (): HourlyData[] => {
+    const hourlyData = Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      total: 0,
+      safe: 0,
+      unsafe: 0
+    }));
 
-  const chartData = data.map(item => ({
+    if (!detections || detections.length === 0) {
+      return hourlyData;
+    }
+
+    // Process each detection
+    detections.forEach(detection => {
+      const createdAt = new Date(detection.created_at);
+      const hour = createdAt.getHours();
+
+      hourlyData[hour].total++;
+      
+      // ✅ FIX: Match database enum values
+      if (detection.feasibility_result === 'safe') {
+        hourlyData[hour].safe++;
+      } else if (detection.feasibility_result === 'unsafe') {
+        hourlyData[hour].unsafe++;
+      }
+      // warning_no_vehicle_detection tidak dihitung sebagai safe/unsafe
+    });
+
+    return hourlyData;
+  };
+
+  const hourlyData = calculateHourlyTrend();
+
+  const chartData = hourlyData.map(item => ({
     hour: `${item.hour.toString().padStart(2, '0')}:00`,
     Total: item.total,
     Safe: item.safe,
     Unsafe: item.unsafe
   }));
 
+  const hasData = hourlyData.some(h => h.total > 0);
+
+  // Guard: Kalau data kosong
+  if (!hasData) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Trend Deteksi (Per Jam)
+        </h3>
+        <div className="h-[300px] flex items-center justify-center text-gray-500">
+          <p>Belum ada data deteksi</p>
+        </div>
+      </div>
+    );
+  }
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-gray-900">{payload[0].payload.hour}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }} className="text-sm">
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Trend Deteksi Hari Ini (Per Jam)
+        Trend Deteksi (Per Jam)
       </h3>
       
       <div className="w-full h-[300px]">
@@ -57,7 +108,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
               stroke="#6b7280"
               tick={{ fontSize: 12 }}
             />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line 
               type="monotone" 
@@ -102,7 +153,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
             <span>Unsafe</span>
           </div>
         </div>
-        <span className="text-gray-500">Data: Hari ini (00:00 - 23:59)</span>
+        <span className="text-gray-500">Total: {hourlyData.reduce((sum, h) => sum + h.total, 0)} deteksi</span>
       </div>
     </div>
   );

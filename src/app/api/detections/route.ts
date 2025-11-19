@@ -1,4 +1,4 @@
-// app/api/detections/route.ts atau src/app/api/detections/route.ts
+// app/api/detections/route.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
@@ -10,9 +10,12 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const from = searchParams.get('from');
-    const to = searchParams.get('to');
+    const from = searchParams.get('from'); // ISO string
+    const to = searchParams.get('to');     // ISO string
 
+    console.log('🔍 Fetching detections with filters:', { from, to });
+
+    // Base query - SELECT all fields needed
     let query = supabase
       .from('overtaking_logs')
       .select(`
@@ -26,10 +29,7 @@ export async function GET(request: Request) {
         vehicle_speed,
         distance_ab,
         ratio_hw,
-        feasibility_result,
-        overtaking_images (
-          image_url
-        )
+        feasibility_result
       `)
       .order('created_at', { ascending: false });
 
@@ -44,29 +44,20 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('❌ Supabase error:', error);
       return NextResponse.json({ error: 'Failed to fetch detections' }, { status: 500 });
     }
 
-    // Transform data to flatten image_url
-    const detections = data?.map(log => ({
-      id: log.id,
-      created_at: log.created_at,
-      vehicle_type: log.vehicle_type,
-      classification_time: log.classification_time,
-      feasibility_time: log.feasibility_time,
-      total_process_time: log.total_process_time,
-      detected_length_m: log.detected_length_m,
-      vehicle_speed: log.vehicle_speed,
-      distance_ab: log.distance_ab,
-      ratio_hw: log.ratio_hw,
-      feasibility_result: log.feasibility_result,
-      image_url: (log.overtaking_images as any)?.[0]?.image_url || null
-    })) || [];
+    console.log('✅ Fetched detections:', data?.length || 0);
 
-    return NextResponse.json({ detections });
+    // Return detections (no transformation needed if field names match)
+    return NextResponse.json({ 
+      detections: data || [],
+      count: data?.length || 0
+    });
+
   } catch (error) {
-    console.error('Error fetching detections:', error);
+    console.error('❌ Error fetching detections:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
