@@ -14,11 +14,11 @@ const SpeedDistribution: React.FC = () => {
 
   const calculateSpeedDistribution = (): SpeedRange[] => {
     const ranges = [
-      { min: 0, max: 40, label: '0-40 km/h' },
-      { min: 40, max: 60, label: '40-60 km/h' },
-      { min: 60, max: 80, label: '60-80 km/h' },
-      { min: 80, max: 100, label: '80-100 km/h' },
-      { min: 100, max: Infinity, label: '>100 km/h' }
+      { min: 0, max: 20, label: '0-20 cm/s' },
+      { min: 20, max: 30, label: '20-30 cm/s' },
+      { min: 30, max: 40, label: '30-40 cm/s' },
+      { min: 40, max: 50, label: '40-50 cm/s' },
+      { min: 50, max: Infinity, label: '>50 cm/s' }
     ];
 
     const counts = ranges.map(range => ({

@@ -13,15 +13,15 @@ import { useDetectionStore } from '@/stores/useDetectionStore';
 import { StatusBadge } from '../shared/StatusBadge';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { EmptyState } from '../shared/EmptyState';
-import { ImageLightbox } from './ImageLightbox';
+// import { ImageLightbox } from './ImageLightbox'; // Bisa di-remove kalau image beneran gak dipake
 import { formatTime, getVehicleTypeLabel } from '@/lib/utils';
 import { Detection } from '@/types';
-import Image from 'next/image';
+// import Image from 'next/image'; // Bisa di-remove
 import { cn } from '@/lib/utils';
 
 export function LogTable() {
   const { detections, isLoading } = useDetectionStore();
-  const [selectedDetection, setSelectedDetection] = useState<Detection | null>(null);
+  // const [selectedDetection, setSelectedDetection] = useState<Detection | null>(null); // Unused state kalau image gada
 
   if (isLoading) {
     return (
@@ -41,14 +41,15 @@ export function LogTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Time</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Vehicle Type</TableHead>
-              <TableHead>Length</TableHead>
-              <TableHead>Speed</TableHead>
-              <TableHead>Distance</TableHead>
-              <TableHead>Feasibility</TableHead>
-              <TableHead>Status</TableHead>
+              {/* Tambah py-4 di header juga biar seimbang */}
+              <TableHead className=" pl-6 py-4">Time</TableHead>
+              {/* Kolom Image Dihapus */}
+              <TableHead className="py-4">Vehicle Type</TableHead>
+              <TableHead className="py-4">Length</TableHead>
+              <TableHead className="py-4">Speed</TableHead>
+              <TableHead className="py-4">Distance</TableHead>
+              <TableHead className="py-4">Feasibility</TableHead>
+              <TableHead className="py-4">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -63,57 +64,45 @@ export function LogTable() {
                     isProcessing && 'bg-yellow-50/50'
                   )}
                 >
-                  <TableCell className="font-medium">
+                  {/* TIPS: Tambahkan class 'py-6' (atau py-8) di setiap TableCell 
+                      untuk menambah jarak atas-bawah (padding vertical).
+                  */}
+                  
+                  <TableCell className="font-medium py-6 pl-6">
                     {formatTime(detection.created_at)}
                   </TableCell>
 
-                  <TableCell>
-                    {detection.image_url ? (
-                      <div
-                        className="relative w-16 h-16 cursor-pointer hover:opacity-80 transition-opacity rounded-lg overflow-hidden"
-                        onClick={() => setSelectedDetection(detection)}
-                      >
-                        <Image
-                          src={detection.image_url}
-                          alt="Vehicle"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs">
-                        No image
-                      </div>
-                    )}
-                  </TableCell>
+                  {/* Kolom Image Cell Dihapus */}
 
-                  <TableCell>
+                  <TableCell className="py-6">
                     {getVehicleTypeLabel(detection.vehicle_type)}
                   </TableCell>
 
-                  <TableCell>{detection.detected_length_m.toFixed(1)} m</TableCell>
+                  <TableCell className="py-6">
+                    {detection.detected_length_m.toFixed(1)} cm
+                  </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-6">
                     {detection.vehicle_speed ? (
-                      `${detection.vehicle_speed} km/h`
+                      `${detection.vehicle_speed} cm/s`
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-6">
                     {detection.distance_ab ? (
-                      `${detection.distance_ab} m`
+                      `${detection.distance_ab} cm`
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-6">
                     <StatusBadge status={detection.feasibility_result} />
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-6">
                     {isProcessing ? (
                       <span className="flex items-center gap-2 text-sm text-gray-500">
                         <span className="animate-spin">⏳</span>
@@ -132,11 +121,12 @@ export function LogTable() {
         </Table>
       </div>
 
-      <ImageLightbox
+      {/* Lightbox dihapus/dikomen karena tidak ada trigger gambarnya lagi */}
+      {/* <ImageLightbox
         detection={selectedDetection}
         open={!!selectedDetection}
         onClose={() => setSelectedDetection(null)}
-      />
+      /> */}
     </>
   );
 }

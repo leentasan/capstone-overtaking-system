@@ -56,13 +56,13 @@ export function ImageLightbox({ detection, open, onClose }: ImageLightboxProps) 
             <div>
               <span className="text-gray-500">Speed:</span>
               <p className="font-medium">
-                {detection.vehicle_speed ? `${detection.vehicle_speed} km/h` : '-'}
+                {detection.vehicle_speed ? `${detection.vehicle_speed} cm/s` : '-'}
               </p>
             </div>
             <div>
               <span className="text-gray-500">Distance:</span>
               <p className="font-medium">
-                {detection.distance_ab ? `${detection.distance_ab} m` : '-'}
+                {detection.distance_ab ? `${detection.distance_ab} cm` : '-'}
               </p>
             </div>
             <div>

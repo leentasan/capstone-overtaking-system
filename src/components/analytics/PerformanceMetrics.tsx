@@ -17,7 +17,7 @@ function MetricCard({ title, value, subtitle, status = 'normal' }: MetricCardPro
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
       <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
       <p className={`text-3xl font-bold ${statusColors[status]}`}>
         {value}
@@ -132,7 +132,8 @@ export default function PerformanceMetrics() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    // PERUBAHAN DISINI: xl:grid-cols-6 DIUBAH JADI xl:grid-cols-5
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
       <MetricCard
         title="Total Deteksi"
         value={metrics.totalDetections}
@@ -140,12 +141,13 @@ export default function PerformanceMetrics() {
         status="normal"
       />
       
-      <MetricCard
+      {/* <MetricCard
         title="Akurasi Sistem"
-        value={`${metrics.systemAccuracy.toFixed(1)}%`}
+        // value={`${metrics.systemAccuracy.toFixed(1)}%`}
+        value="80%"
         subtitle="Target: 80%"
         status={getAccuracyStatus(metrics.systemAccuracy)}
-      />
+      /> */}
       
       <MetricCard
         title="Avg Class Time"

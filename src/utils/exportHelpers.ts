@@ -11,12 +11,12 @@ export function exportToCSV(detections: Detection[]) {
   const headers = [
     'Time',
     'Vehicle Type',
-    'Length (m)',
-    'Speed (km/h)',
-    'Distance (m)',
+    'Length (cm)',
+    'Speed (cm/s)',
+    'Distance (cm)',
     'Feasibility',
-    'Classification Time (ms)',
-    'Feasibility Time (ms)'
+    'Classification Time (s)',
+    'Feasibility Time (s)'
   ];
 
   // Create CSV rows
@@ -156,7 +156,7 @@ export function exportToPDF(detections: Detection[]) {
           </div>
           <div class="metric">
             <div class="metric-label">Avg Speed</div>
-            <div class="metric-value">${avgSpeed.toFixed(1)} km/h</div>
+            <div class="metric-value">${avgSpeed.toFixed(1)} cm/s</div>
           </div>
           <div class="metric">
             <div class="metric-label">Compliance Rate</div>
@@ -171,9 +171,9 @@ export function exportToPDF(detections: Detection[]) {
           <tr>
             <th>Time</th>
             <th>Vehicle Type</th>
-            <th>Length (m)</th>
-            <th>Speed (km/h)</th>
-            <th>Distance (m)</th>
+            <th>Length (cm)</th>
+            <th>Speed (cm/s)</th>
+            <th>Distance (cm)</th>
             <th>Feasibility</th>
           </tr>
         </thead>

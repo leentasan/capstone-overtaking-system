@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     // Base query - SELECT all fields needed
     let query = supabase
-      .from('overtaking_logs')
+      .from('clean_dashboard_view')
       .select(`
         id,
         created_at,

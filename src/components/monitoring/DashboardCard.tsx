@@ -37,7 +37,7 @@ export function DashboardCard() {
 
       <MetricCard
         title="Average Speed"
-        value={`${averageSpeed.toFixed(1)} km/h`}
+        value={`${averageSpeed.toFixed(1)} cm/s`}
         subtitle="All vehicles"
         icon={Gauge}
         color="blue"
