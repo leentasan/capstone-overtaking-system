@@ -1,17 +1,16 @@
 // components/analytics/ExportSection.tsx
+'use client';
+
 import React, { useState } from 'react';
-import { exportToCSV, exportToPDF, type AnalyticsData } from '@/utils/exportHelpers';
+import { useDetectionStore } from '@/stores/useDetectionStore';
+import { exportToCSV, exportToPDF } from '@/utils/exportHelpers';
 
-interface ExportSectionProps {
-  analyticsData: AnalyticsData;
-}
-
-export default function ExportSection({ analyticsData }: ExportSectionProps) {
+export default function ExportSection() {
   const [isExporting, setIsExporting] = useState(false);
+  const detections = useDetectionStore((state) => state.detections);
 
   const handleExport = async (format: 'csv' | 'pdf') => {
-    // Check if there's actual data to export
-    if (!analyticsData || analyticsData.metrics.totalDetections === 0) {
+    if (!detections || detections.length === 0) {
       alert('No data available to export');
       return;
     }
@@ -20,23 +19,22 @@ export default function ExportSection({ analyticsData }: ExportSectionProps) {
       setIsExporting(true);
       
       if (format === 'csv') {
-        exportToCSV(analyticsData);
+        exportToCSV(detections);
       } else {
-        exportToPDF(analyticsData);
+        exportToPDF(detections);
       }
       
-      // Small delay for better UX
       await new Promise(resolve => setTimeout(resolve, 500));
       
     } catch (error) {
       console.error('Export failed:', error);
-      alert(`Failed to export ${format.toUpperCase()}. Please try again.`);
+      alert(`Failed to export ${format.toUpperCase()}. Please try again.`); // ✅ FIX: Tambah kurung buka
     } finally {
       setIsExporting(false);
     }
   };
 
-  const hasData = analyticsData && analyticsData.metrics.totalDetections > 0;
+  const hasData = detections.length > 0;
 
   return (
     <div className="flex items-center gap-3">

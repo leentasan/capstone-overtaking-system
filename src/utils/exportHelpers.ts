@@ -1,139 +1,214 @@
 // utils/exportHelpers.ts
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { Detection } from '@/types';
 
-// Extend jsPDF type to include lastAutoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    lastAutoTable?: {
-      finalY: number;
-    };
+export function exportToCSV(detections: Detection[]) {
+  if (!detections || detections.length === 0) {
+    alert('No data to export');
+    return;
   }
-}
 
-export interface AnalyticsData {
-  trendData: Array<{ hour: number; total: number; safe: number; unsafe: number }>;
-  speedData: Array<{ range: string; count: number; percentage: number }>;
-  metrics: {
-    totalDetections: number;
-    systemAccuracy: number;
-    avgClassificationTime: number;
-    avgFeasibilityTime: number;
-    avgSpeed: number;
-    complianceRate: number;
-  };
-}
+  // Create CSV header
+  const headers = [
+    'Time',
+    'Vehicle Type',
+    'Length (cm)',
+    'Speed (cm/s)',
+    'Distance (cm)',
+    'Feasibility',
+    'Classification Time (s)',
+    'Feasibility Time (s)'
+  ];
 
-export function exportToCSV(data: AnalyticsData) {
-  const today = new Date().toISOString().split('T')[0];
-  
-  // Create CSV content
-  let csv = 'Overtaking System Analytics Report\n';
-  csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-  
-  // Metrics section
-  csv += 'SYSTEM METRICS\n';
-  csv += 'Metric,Value\n';
-  csv += `Total Detections,${data.metrics.totalDetections}\n`;
-  csv += `System Accuracy,${data.metrics.systemAccuracy.toFixed(2)}%\n`;
-  csv += `Average Classification Time,${data.metrics.avgClassificationTime.toFixed(2)}ms\n`;
-  csv += `Average Feasibility Time,${data.metrics.avgFeasibilityTime.toFixed(2)}ms\n`;
-  csv += `Average Speed,${data.metrics.avgSpeed.toFixed(2)}\n`;
-  csv += `Compliance Rate,${data.metrics.complianceRate.toFixed(2)}%\n\n`;
-  
-  // Hourly trend data
-  csv += 'HOURLY DETECTION TRENDS\n';
-  csv += 'Hour,Total Detections,Safe,Unsafe\n';
-  data.trendData.forEach(row => {
-    csv += `${row.hour}:00,${row.total},${row.safe},${row.unsafe}\n`;
-  });
-  csv += '\n';
-  
-  // Speed distribution
-  csv += 'SPEED DISTRIBUTION\n';
-  csv += 'Speed Range,Count,Percentage\n';
-  data.speedData.forEach(row => {
-    csv += `${row.range},${row.count},${row.percentage.toFixed(2)}%\n`;
-  });
-  
-  // Create blob and download
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // Create CSV rows
+  const rows = detections.map(d => [
+    new Date(d.created_at).toLocaleString(),
+    d.vehicle_type || '-',
+    d.detected_length_m?.toFixed(1) || '-',
+    d.vehicle_speed || '-',
+    d.distance_ab || '-',
+    d.feasibility_result || '-',
+    d.classification_time?.toFixed(0) || '-',
+    d.feasibility_time?.toFixed(0) || '-'
+  ]);
+
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+
+  // Download
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   
   link.setAttribute('href', url);
-  link.setAttribute('download', `analytics_report_${today}.csv`);
+  link.setAttribute('download', `detections_${new Date().toISOString().split('T')[0]}.csv`);
   link.style.visibility = 'hidden';
+  
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
-  console.log('✅ CSV exported successfully');
 }
 
-export function exportToPDF(data: AnalyticsData) {
-  const today = new Date().toISOString().split('T')[0];
-  const doc = new jsPDF();
+export function exportToPDF(detections: Detection[]) {
+  if (!detections || detections.length === 0) {
+    alert('No data to export');
+    return;
+  }
+
+  // Calculate metrics
+  const totalDetections = detections.length;
+  const safeCount = detections.filter(d => d.feasibility_result === 'safe').length;
+  const unsafeCount = detections.filter(d => d.feasibility_result === 'unsafe').length;
+  const complianceRate = totalDetections > 0 ? ((safeCount / totalDetections) * 100).toFixed(1) : '0';
   
-  // Title
-  doc.setFontSize(18);
-  doc.text('Overtaking System Analytics Report', 14, 20);
-  
-  doc.setFontSize(10);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
-  
-  // System Metrics Table
-  doc.setFontSize(14);
-  doc.text('System Metrics', 14, 40);
-  
-  autoTable(doc, {
-    startY: 45,
-    head: [['Metric', 'Value']],
-    body: [
-      ['Total Detections', data.metrics.totalDetections.toString()],
-      ['System Accuracy', `${data.metrics.systemAccuracy.toFixed(2)}%`],
-      ['Avg Classification Time', `${data.metrics.avgClassificationTime.toFixed(2)}ms`],
-      ['Avg Feasibility Time', `${data.metrics.avgFeasibilityTime.toFixed(2)}ms`],
-      ['Average Speed', data.metrics.avgSpeed.toFixed(2)],
-      ['Compliance Rate', `${data.metrics.complianceRate.toFixed(2)}%`],
-    ],
-  });
-  
-  // Hourly Trends Table
-  const finalY = doc.lastAutoTable?.finalY || 45;
-  doc.setFontSize(14);
-  doc.text('Hourly Detection Trends', 14, finalY + 15);
-  
-  autoTable(doc, {
-    startY: finalY + 20,
-    head: [['Hour', 'Total', 'Safe', 'Unsafe']],
-    body: data.trendData
-      .filter(row => row.total > 0)
-      .map(row => [
-        `${row.hour}:00`,
-        row.total.toString(),
-        row.safe.toString(),
-        row.unsafe.toString(),
-      ]),
-  });
-  
-  // Speed Distribution Table
-  const finalY2 = doc.lastAutoTable?.finalY || finalY + 20;
-  doc.setFontSize(14);
-  doc.text('Speed Distribution', 14, finalY2 + 15);
-  
-  autoTable(doc, {
-    startY: finalY2 + 20,
-    head: [['Speed Range', 'Count', 'Percentage']],
-    body: data.speedData.map(row => [
-      row.range,
-      row.count.toString(),
-      `${row.percentage.toFixed(2)}%`,
-    ]),
-  });
-  
-  // Save PDF
-  doc.save(`analytics_report_${today}.pdf`);
-  
-  console.log('✅ PDF exported successfully');
+  const avgSpeed = detections
+    .filter(d => d.vehicle_speed)
+    .reduce((sum, d) => sum + (d.vehicle_speed || 0), 0) / 
+    detections.filter(d => d.vehicle_speed).length || 0;
+
+  // Create HTML content for PDF
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Vehicle Detection Report</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          padding: 40px;
+          color: #333;
+        }
+        h1 { 
+          color: #1f2937;
+          border-bottom: 3px solid #3b82f6;
+          padding-bottom: 10px;
+        }
+        .summary {
+          background: #f3f4f6;
+          padding: 20px;
+          border-radius: 8px;
+          margin: 20px 0;
+        }
+        .summary-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+          margin-top: 15px;
+        }
+        .metric {
+          background: white;
+          padding: 15px;
+          border-radius: 6px;
+          border-left: 4px solid #3b82f6;
+        }
+        .metric-label {
+          font-size: 12px;
+          color: #6b7280;
+          text-transform: uppercase;
+        }
+        .metric-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: #1f2937;
+          margin-top: 5px;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 20px;
+          font-size: 12px;
+        }
+        th { 
+          background: #3b82f6; 
+          color: white; 
+          padding: 12px 8px;
+          text-align: left;
+        }
+        td { 
+          padding: 10px 8px; 
+          border-bottom: 1px solid #e5e7eb;
+        }
+        tr:nth-child(even) { 
+          background: #f9fafb; 
+        }
+        .safe { color: #10b981; font-weight: bold; }
+        .unsafe { color: #ef4444; font-weight: bold; }
+        .footer {
+          margin-top: 30px;
+          text-align: center;
+          color: #6b7280;
+          font-size: 11px;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>🚗 Vehicle Detection Report</h1>
+      
+      <div class="summary">
+        <h2 style="margin-top: 0;">Summary Statistics</h2>
+        <div class="summary-grid">
+          <div class="metric">
+            <div class="metric-label">Total Detections</div>
+            <div class="metric-value">${totalDetections}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Avg Speed</div>
+            <div class="metric-value">${avgSpeed.toFixed(1)} cm/s</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Compliance Rate</div>
+            <div class="metric-value">${complianceRate}%</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Detection Details</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Vehicle Type</th>
+            <th>Length (cm)</th>
+            <th>Speed (cm/s)</th>
+            <th>Distance (cm)</th>
+            <th>Feasibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${detections.map(d => `
+            <tr>
+              <td>${new Date(d.created_at).toLocaleString()}</td>
+              <td>${d.vehicle_type || '-'}</td>
+              <td>${d.detected_length_m?.toFixed(1) || '-'}</td>
+              <td>${d.vehicle_speed || '-'}</td>
+              <td>${d.distance_ab || '-'}</td>
+              <td class="${d.feasibility_result === 'safe' ? 'safe' : 'unsafe'}">
+                ${d.feasibility_result || '-'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="footer">
+        Generated on ${new Date().toLocaleString()} | Vehicle Detection System
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Open print dialog
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  }
 }

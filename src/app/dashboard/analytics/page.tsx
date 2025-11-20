@@ -132,10 +132,10 @@ export default function AnalyticsPage() {
               Analisis data deteksi kendaraan dan performa sistem
             </p>
           </div>
-          <ExportSection analyticsData={analyticsData} />
+          <ExportSection/>
         </div>
 
-        {/* Debug Info - HAPUS NANTI */}
+        {/* Debug Info - HAPUS NANTI
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-sm font-semibold text-yellow-800 mb-2">🐛 Debug Info:</p>
           <div className="text-xs text-yellow-700 space-y-1">
@@ -144,21 +144,21 @@ export default function AnalyticsPage() {
             <p>Speed Data: {analyticsData.speedData.length} items</p>
             <p>Button should be: {analyticsData.metrics.totalDetections > 0 ? '✅ ENABLED' : '❌ DISABLED'}</p>
           </div>
-        </div>
+        </div> */}
 
         {/* Performance Metrics */}
-        <PerformanceMetrics metrics={analyticsData.metrics} />
+        <PerformanceMetrics/>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Trend Chart - Full width */}
           <div className="lg:col-span-2">
-            <TrendChart data={analyticsData.trendData} />
+            <TrendChart/>
           </div>
 
           {/* Speed Distribution - Full width */}
           <div className="lg:col-span-2">
-            <SpeedDistribution data={analyticsData.speedData} />
+            <SpeedDistribution />
           </div>
         </div>
 

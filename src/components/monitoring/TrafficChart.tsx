@@ -11,19 +11,9 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export function TrafficChart() {
   const detections = useDetectionStore((state) => state.detections);
 
-  // DEBUG
-  console.log('=== TRAFFIC CHART DEBUG ===');
-  console.log('Total detections:', detections.length);
-  console.log('Sample detection:', detections[0]);
-  console.log('All vehicle types:', detections.map(d => d.vehicle_type));
-
   const carCount = detections.filter((d) => d.vehicle_type === 'mobil').length;
   const mediumCount = detections.filter((d) => d.vehicle_type === 'truk/bus sedang').length;
   const largeCount = detections.filter((d) => d.vehicle_type === 'truk/bus besar').length;
-
-  // DEBUG
-  console.log('Chart counts:', { carCount, mediumCount, largeCount });
-  console.log('===========================');
 
   const data = {
     labels: ['Mobil', 'Truck Sedang', 'Truck Besar'],
@@ -47,6 +37,13 @@ export function TrafficChart() {
     plugins: {
       legend: {
         position: 'bottom' as const,
+        labels: {
+          boxWidth: 12,
+          padding: 6, // CHANGE: 8 → 6
+          font: {
+            size: 10 // CHANGE: 11 → 10
+          }
+        }
       },
       tooltip: {
         callbacks: {
@@ -63,14 +60,16 @@ export function TrafficChart() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Traffic Distribution</CardTitle>
-        <p className="text-sm text-gray-500">By Vehicle Type</p>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-2 pt-4"> {/* ADD: pb-2 pt-4 */}
+        <CardTitle className="text-base">Traffic Distribution</CardTitle>
+        <p className="text-xs text-gray-500">By Vehicle Type</p>
       </CardHeader>
-      <CardContent>
-        <div className="h-64">
-          <Doughnut data={data} options={options} />
+      <CardContent className="flex-1 pt-0 pb-3"> {/* CHANGE: pt-2 → pt-0, ADD: pb-3 */}
+        <div className="h-full max-h-[260px] flex items-center justify-center"> {/* CHANGE: 280px → 260px */}
+          <div className="w-full max-w-[220px]"> {/* CHANGE: 240px → 220px */}
+            <Doughnut data={data} options={options} />
+          </div>
         </div>
       </CardContent>
     </Card>
