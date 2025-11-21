@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     // Base query - SELECT all fields needed
     let query = supabase
-      .from('clean_dashboard_view')
+      .from('clean_dashboard_with_images')
       .select(`
         id,
         created_at,

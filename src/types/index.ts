@@ -20,7 +20,7 @@ export interface Detection {
   feasibility_result: 'safe' | 'unsafe' | 'warning_no_vehicle_detection' | null;
   
   // Image (optional, dari overtaking_images join)
-  image_url?: string;
+  image_url?: string | null; // 👈 TAMBAHKAN | null
 }
 
 export interface Stats {

@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function testConnection() {
   try {
-    const { data, error } = await supabase.from('clean_dashboard_view').select('count');
+    const { data, error } = await supabase.from('clean_dashboard_with_images').select('count');
     console.log('Connection test:', { data, error });
     return !error;
   } catch (err) {
@@ -23,10 +23,10 @@ export async function testConnection() {
 // Fetch detections with optional date range filter
 export async function fetchDetections(limit: number = 50, dateRange?: DateRange): Promise<Detection[]> {
   try {
-    console.log('🔍 Attempting to fetch from clean_dashboard_view...');
+    console.log('🔍 Attempting to fetch from clean_dashboard_with_images...');
     
     let query = supabase
-      .from('clean_dashboard_view')
+      .from('clean_dashboard_with_images')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -70,7 +70,7 @@ export async function fetchStats(dateRange?: DateRange): Promise<Stats> {
     
     // STEP 1: Fetch ALL data (for today & current month calculation)
     const { data: allData, error: allError } = await supabase
-      .from('clean_dashboard_view')
+      .from('clean_dashboard_with_images')
       .select('*');
 
     if (allError) {
