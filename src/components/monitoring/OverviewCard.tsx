@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDetectionStore } from '@/stores/useDetectionStore';
-import { format, isSameDay, startOfMonth } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 
 export function OverviewCard() {
   const stats = useDetectionStore((state) => state.stats);
@@ -10,47 +10,45 @@ export function OverviewCard() {
 
   if (!stats) return null;
 
-  const isToday = dateRange && 
-    isSameDay(dateRange.from, new Date()) && 
-    isSameDay(dateRange.to, new Date());
+  const today = new Date();
   
-  const isCurrentMonth = dateRange && 
-    isSameDay(dateRange.from, startOfMonth(new Date())) &&
-    isSameDay(dateRange.to, new Date());
+  const isToday = dateRange && 
+    isSameDay(dateRange.from, today) && 
+    isSameDay(dateRange.to, today);
 
   const getFilterLabel = () => {
     if (!dateRange) return 'All Time';
-    if (isToday) return `Today (${format(new Date(), 'dd MMM yyyy')})`;
-    if (isCurrentMonth) return 'Current Month';
+    if (isToday) return `Today (${format(today, 'dd MMM yyyy')})`;
     return `${format(dateRange.from, 'dd MMM')} - ${format(dateRange.to, 'dd MMM yyyy')}`;
   };
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 pt-4"> {/* ADD: pb-3 pt-4 untuk reduce padding */}
-        <CardTitle className="text-base">Overview</CardTitle> {/* CHANGE: default → text-base */}
-        <p className="text-xs text-gray-500">Total Deteksi Kendaraan</p> {/* CHANGE: text-sm → text-xs */}
+      <CardHeader className="pb-3 pt-4">
+        <CardTitle className="text-base">Overview</CardTitle>
+        <p className="text-xs text-gray-500">Total Deteksi Kendaraan</p>
       </CardHeader>
-      <CardContent className="flex-1 pt-0"> {/* CHANGE: default → pt-0 */}
-        <div className="space-y-3"> {/* CHANGE: space-y-4 → space-y-3 */}
+      <CardContent className="flex-1 pt-0">
+        <div className="space-y-3">
           <div>
-            <div className="text-4xl font-bold text-purple-600"> {/* CHANGE: text-5xl → text-4xl */}
+            <div className="text-4xl font-bold text-purple-600">
               {stats.totalDetections}
             </div>
-            <p className="text-xs text-gray-500">{getFilterLabel()}</p> {/* CHANGE: text-sm → text-xs */}
+            <p className="text-xs text-gray-500">{getFilterLabel()}</p>
           </div>
 
-          <div className="border-t pt-3"> {/* CHANGE: pt-4 → pt-3 */}
-            <div className="grid grid-cols-2 gap-3"> {/* CHANGE: gap-4 → gap-3 */}
-              <div>
-                <div className="text-xl font-bold"> {/* CHANGE: text-2xl → text-xl */}
+          <div className="border-t pt-3">
+            <div className="grid grid-cols-1 gap-3"> {/* CHANGE: grid-cols-2 → grid-cols-1 */}
+              {/* Current Month - Commented */}
+              {/* <div>
+                <div className="text-xl font-bold">
                   {stats.currentMonthCount}
                 </div>
                 <p className="text-xs text-gray-500">Current Month</p>
-              </div>
+              </div> */}
 
-              <div className="border-l pl-3"> {/* CHANGE: pl-4 → pl-3 */}
-                <div className="text-xl font-bold text-purple-600"> {/* CHANGE: text-2xl → text-xl */}
+              <div> {/* REMOVE: border-l pl-3 */}
+                <div className="text-xl font-bold text-purple-600">
                   {stats.todayCount}
                 </div>
                 <p className="text-xs text-gray-500">Today</p>

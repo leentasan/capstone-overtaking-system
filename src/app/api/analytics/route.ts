@@ -52,7 +52,7 @@ export async function GET() {
 
     // Fetch today's data from Supabase
     const { data: logs, error } = await supabase
-      .from('clean_dashboard_view')
+      .from('clean_dashboard_with_images')
       .select('*')
       .gte('created_at', todayStart)
       .lte('created_at', todayEnd)
